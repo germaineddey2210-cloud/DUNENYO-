@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f8a4c">
+<title>DUNENYO COMMERCE (démo)</title>
+<style>
+:root{--vert:#1f8a4c;--vert-clair:#e8f5ee;--orange:#f28c28;--fond:#f6f7f4;--texte:#1d2521;--gris:#5f6b63;--rouge:#b93a2e}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--fond);color:var(--texte);font-size:18px;padding-bottom:90px}
+header{background:var(--vert);color:#fff;padding:16px 18px}
+header h1{margin:0;font-size:20px}
+.demo{background:#fff1dc;color:#7a4300;padding:8px 14px;font-size:14px;text-align:center}
+.demo button{background:none;border:1px solid #7a4300;border-radius:8px;padding:4px 10px;color:#7a4300;margin-left:6px}
+main{padding:14px}
+.page{display:none}.page.actif{display:block}
+h2{font-size:22px;margin:4px 0 12px}
+.cartes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.carte{background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.label{color:var(--gris);font-size:14px}
+.valeur{font-size:21px;font-weight:700;margin-top:4px}
+.bouton{display:block;width:100%;border:0;border-radius:14px;padding:16px;font-size:18px;font-weight:700;color:#fff;background:var(--vert);margin:12px 0}
+.bouton.orange{background:var(--orange)}
+label{display:block;margin:14px 0 6px;font-weight:600}
+input,select{width:100%;font-size:18px;padding:13px;border:2px solid #cdd7d0;border-radius:12px;background:#fff}
+.choix{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.choix button{border:2px solid #cdd7d0;background:#fff;border-radius:12px;padding:12px 4px;font-size:15px;color:var(--texte)}
+.choix button.actif{border-color:var(--vert);background:var(--vert-clair);font-weight:700}
+.total{background:var(--vert-clair);border-radius:14px;padding:14px;margin:14px 0;font-size:20px;font-weight:700}
+.alerte{background:#fbe9e7;color:var(--rouge);border-radius:12px;padding:12px;margin:10px 0;font-weight:600}
+.ok{background:var(--vert-clair);color:var(--vert);border-radius:12px;padding:12px;margin:10px 0;font-weight:600}
+.ligne{background:#fff;border-radius:14px;padding:12px 14px;margin:8px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.petit{color:var(--gris);font-size:14px}
+.badge{background:var(--orange);color:#fff;border-radius:999px;padding:2px 8px;font-size:13px;font-weight:700}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid #dde3df;padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{border:0;background:none;padding:8px 2px;font-size:12px;color:var(--gris)}
+nav button span{display:block;font-size:22px}
+nav button.actif{color:var(--vert);font-weight:700}
+</style>
+</head>
+<body>
+<header><h1>DUNENYO COMMERCE</h1><div class="petit" style="color:#e8f5ee">Gestion simple de votre commerce</div></header>
+<div class="demo">Mode démonstration : données fictives <button id="reset">Réinitialiser la démo</button></div>
+<main>
+<section class="page actif" id="p-accueil">
+  <h2>Bonjour 👋</h2>
+  <div class="cartes">
+    <div class="carte"><div class="label">Recettes du jour (chiffre d'affaires)</div><div class="valeur" id="k-ca"></div></div>
+    <div class="carte"><div class="label">Encaissé aujourd'hui</div><div class="valeur" id="k-enc"></div></div>
+    <div class="carte"><div class="label">Dépenses du jour</div><div class="valeur" id="k-dep"></div></div>
+    <div class="carte"><div class="label">Valeur du stock</div><div class="valeur" id="k-stock"></div></div>
+  </div>
+  <p class="petit">Une recette n'est pas un bénéfice. Le résultat estimé se trouve dans « Résumé ».</p>
+  <div id="alertes"></div>
+  <button class="bouton" data-aller="p-vente">+ Enregistrer une vente</button>
+  <button class="bouton orange" data-aller="p-depense">+ Enregistrer une dépense</button>
+</section>
+<section class="page" id="p-vente">
+  <h2>Vendre</h2>
+  <label for="v-produit">Produit</label><select id="v-produit"></select>
+  <div class="petit" id="v-info"></div>
+  <label for="v-qte">Quantité vendue</label><input id="v-qte" type="number" inputmode="decimal" min="0" step="any">
+  <label for="v-prix">Prix unitaire (FCFA)</label><input id="v-prix" type="number" inputmode="numeric" min="0">
+  <label for="v-remise">Remise (FCFA)</label><input id="v-remise" type="number" inputmode="numeric" min="0" value="0">
+  <label>Mode de paiement</label>
+  <div class="choix" id="v-mode">
+    <button type="button" data-mode="Espèces" class="actif">💵 Espèces</button>
+    <button type="button" data-mode="Mobile">📱 Mobile</button>
+    <button type="button" data-mode="Crédit">📒 Crédit</button>
+  </div>
+  <label for="v-recu">Montant encaissé (FCFA)</label><input id="v-recu" type="number" inputmode="numeric" min="0">
+  <div class="total" id="v-total"></div>
+  <label for="v-note">Commentaire (facultatif)</label><input id="v-note" type="text">
+  <div id="v-msg"></div>
+  <button class="bouton" id="v-ok">Enregistrer la vente</button>
+</section>
+<section class="page" id="p-depense">
+  <h2>Dépense</h2>
+  <label>Catégorie</label><div class="choix" id="d-cat"></div>
+  <label for="d-montant">Montant (FCFA)</label><input id="d-montant" type="number" inputmode="numeric" min="0">
+  <label for="d-date">Date</label><input id="d-date" type="date">
+  <label for="d-note">Note (facultatif)</label><input id="d-note" type="text">
+  <div id="d-msg"></div>
+  <button class="bouton orange" id="d-ok">Enregistrer la dépense</button>
+</section>
+<section class="page" id="p-stock">
+  <h2>Stock</h2>
+  <div id="liste-stock"></div>
+  <p class="petit">Les achats de marchandises et l'inventaire arriveront à l'étape suivante.</p>
+</section>
+<section class="page" id="p-resume">
+  <h2>Résumé du jour</h2>
+  <label for="r-date">Journée</label><input id="r-date" type="date">
+  <div id="r-zone"></div>
+</section>
+</main>
+<nav>
+  <button data-aller="p-accueil" class="actif"><span>🏠</span>Accueil</button>
+  <button data-aller="p-vente"><span>🛒</span>Vendre</button>
+  <button data-aller="p-depense"><span>💸</span>Dépense</button>
+  <button data-aller="p-stock"><span>📦</span>Stock</button>
+  <button data-aller="p-resume"><span>📊</span>Résumé</button>
+</nav>
+<script>
+/*LOGIC_START*/
+const CATEGORIES=["Transport","Location de place","Nourriture et frais de marché","Emballages","Communication","Main-d'œuvre","Autres dépenses"];
+function fcfa(n){return Math.round(n).toLocaleString('fr-FR')+' FCFA';}
+function totalVente(v){return Math.max(0,v.quantite*v.prix-(v.remise||0));}
+function creance(v){return Math.max(0,totalVente(v)-(v.recu||0));}
+function valeurStock(produits){return produits.reduce((s,p)=>s+Math.max(0,p.stock)*(p.cout||0),0);}
+function resumeJour(date,ventes,depenses){
+  const vj=ventes.filter(v=>v.date===date), dj=depenses.filter(d=>d.date===date);
+  const ca=vj.reduce((s,v)=>s+totalVente(v),0);
+  const enc=vj.reduce((s,v)=>s+Math.min(v.recu||0,totalVente(v)),0);
+  const dep=dj.reduce((s,d)=>s+d.montant,0);
+  const manquant=[]; let cogs=0;
+  vj.forEach(v=>{ if(v.coutUnitaire==null) manquant.push(v.produit); else cogs+=v.quantite*v.coutUnitaire; });
+  const creances=vj.reduce((s,v)=>s+creance(v),0);
+  const resultat=manquant.length?null:ca-cogs-dep;
+  return {ca,enc,dep,cogs,creances,resultat,manquant:[...new Set(manquant)]};
+}
+function construireDemo(date){
+  return {
+    produits:[
+      {id:'tom',nom:'Tomates',emoji:'🍅',unite:'panier',prix:2000,cout:1200,stock:7,seuil:3},
+      {id:'mais',nom:'Maïs',emoji:'🌽',unite:'kg',prix:400,cout:300,stock:30,seuil:10},
+      {id:'piment',nom:'Piment',emoji:'🌶️',unite:'tas',prix:500,cout:350,stock:2,seuil:3},
+      {id:'poisson',nom:'Poisson fumé',emoji:'🐟',unite:'tas',prix:1500,cout:1000,stock:4,seuil:2}
+    ],
+    ventes:[
+      {id:'d1',date,produitId:'tom',produit:'Tomates',unite:'panier',quantite:5,prix:2000,remise:0,mode:'Espèces',recu:10000,coutUnitaire:1200,commentaire:''},
+      {id:'d2',date,produitId:'mais',produit:'Maïs',unite:'kg',quantite:10,prix:400,remise:0,mode:'Mobile',recu:4000,coutUnitaire:300,commentaire:''},
+      {id:'d3',date,produitId:'poisson',produit:'Poisson fumé',unite:'tas',quantite:2,prix:1500,remise:0,mode:'Crédit',recu:1000,coutUnitaire:1000,commentaire:''}
+    ],
+    depenses:[
+      {id:'x1',date,categorie:'Transport',montant:1500,note:'Démo'},
+      {id:'x2',date,categorie:'Location de place',montant:500,note:''}
+    ]
+  };
+}
+/*LOGIC_END*/
+
+const KEY='dunenyo_demo_v1';
+const el=id=>document.getElementById(id);
+const aujourdhui=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const nouvelId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+function chargerEtat(){
+  try{const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.produits&&s.ventes&&s.depenses) return s;}catch(e){}
+  return construireDemo(aujourdhui());
+}
+let etat=chargerEtat();
+let modeVente='Espèces', categorieDepense=CATEGORIES[0];
+function sauver(){
+  try{localStorage.setItem(KEY,JSON.stringify(etat));}
+  catch(e){alert("Impossible d'enregistrer sur ce téléphone (stockage bloqué ou plein).");}
+}
+function texte(parent,tag,contenu,classe){const n=document.createElement(tag);n.textContent=contenu;if(classe)n.className=classe;parent.appendChild(n);return n;}
+function produitCourant(){return etat.produits.find(p=>p.id===el('v-produit').value)||etat.produits[0];}
+
+function lireVente(){
+  const p=produitCourant();
+  return {produitId:p.id,produit:p.nom,unite:p.unite,
+    quantite:parseFloat(el('v-qte').value)||0,
+    prix:parseFloat(el('v-prix').value)||0,
+    remise:parseFloat(el('v-remise').value)||0,
+    mode:modeVente,
+    recu:parseFloat(el('v-recu').value)||0,
+    coutUnitaire:p.cout};
+}
+function majVente(){
+  const v=lireVente(), t=totalVente(v), p=produitCourant();
+  el('v-info').textContent=`Unité : ${p.unite} · En stock : ${p.stock} ${p.unite}`;
+  el('v-total').textContent='Montant total : '+fcfa(t);
+  if(el('v-recu').dataset.touche!=='1') el('v-recu').value=modeVente==='Crédit'?0:t;
+}
+function enregistrerVente(){
+  const v=lireVente(), p=produitCourant(), msg=el('v-msg');
+  msg.innerHTML='';
+  const erreur=t=>texte(msg,'div',t,'alerte');
+  if(!(v.quantite>0)) return erreur('Indiquez une quantité supérieure à 0.');
+  if(!(v.prix>0)) return erreur('Indiquez le prix unitaire.');
+  const total=totalVente(v);
+  if(v.recu<0) return erreur('Le montant encaissé ne peut pas être négatif.');
+  if(v.recu>total) return erreur('Le montant encaissé dépasse le total. Vérifiez les chiffres.');
+  if(v.quantite>p.stock && !confirm(`Stock insuffisant : il reste ${p.stock} ${p.unite} de ${p.nom}. Enregistrer quand même ?`)) return;
+  p.stock-=v.quantite;
+  etat.ventes.push({...v,id:nouvelId(),date:aujourdhui(),total,commentaire:el('v-note').value.trim()});
+  sauver();
+  el('v-qte').value=''; el('v-note').value=''; el('v-remise').value=0; el('v-recu').dataset.touche='0';
+  majVente();
+  texte(msg,'div','Vente enregistrée.','ok');
+  rafraichir();
+}
+
+function chargerCategories(){
+  const c=el('d-cat'); c.innerHTML='';
+  CATEGORIES.forEach(nom=>{
+    const b=document.createElement('button'); b.type='button'; b.textContent=nom; b.dataset.cat=nom;
+    b.addEventListener('click',()=>{categorieDepense=nom; majCategories();});
+    c.appendChild(b);
+  });
+  majCategories();
+}
+function majCategories(){document.querySelectorAll('#d-cat button').forEach(b=>b.classList.toggle('actif',b.dataset.cat===categorieDepense));}
+function enregistrerDepense(){
+  const msg=el('d-msg'); msg.innerHTML='';
+  const montant=parseFloat(el('d-montant').value);
+  if(!(montant>0)){texte(msg,'div','Indiquez un montant supérieur à 0.','alerte');return;}
+  if(!el('d-date').value){texte(msg,'div','Indiquez la date.','alerte');return;}
+  etat.depenses.push({id:nouvelId(),date:el('d-date').value,categorie:categorieDepense,montant,note:el('d-note').value.trim()});
+  sauver();
+  el('d-montant').value=''; el('d-note').value='';
+  texte(msg,'div','Dépense enregistrée.','ok');
+  rafraichir();
+}
+
+function rendreStock(){
+  const c=el('liste-stock'); c.innerHTML='';
+  etat.produits.forEach(p=>{
+    const l=document.createElement('div'); l.className='ligne';
+    const g=document.createElement('div');
+    texte(g,'b',`${p.emoji} ${p.nom}`);
+    texte(g,'div',`${p.stock} ${p.unite} · achat ${fcfa(p.cout)} · vente ${fcfa(p.prix)}`,'petit');
+    const d=document.createElement('div'); d.style.textAlign='right';
+    if(p.stock<0) texte(d,'span','Négatif : à corriger','badge');
+    else if(p.stock<=p.seuil) texte(d,'span','Stock faible','badge');
+    texte(d,'div','Valeur '+fcfa(Math.max(0,p.stock)*p.cout),'petit');
+    l.append(g,d); c.appendChild(l);
+  });
+}
+function rendreResume(){
+  const date=el('r-date').value||aujourdhui();
+  const r=resumeJour(date,etat.ventes,etat.depenses);
+  const z=el('r-zone'); z.innerHTML='';
+  [["Chiffre d'affaires (valeur des ventes)",r.ca],["Encaissements (argent reçu)",r.enc],["Dépenses d'exploitation",r.dep],["Coût des marchandises vendues",r.cogs],["Créances clients (reste à recevoir)",r.creances]]
+    .forEach(([t,v])=>{const l=document.createElement('div');l.className='ligne';texte(l,'span',t);texte(l,'b',fcfa(v));z.appendChild(l);});
+  if(r.resultat===null) texte(z,'div',`Résultat incomplet : données manquantes (${r.manquant.join(', ')}).`,'alerte');
+  else texte(z,'div','Résultat estimé : '+fcfa(r.resultat), r.resultat<0?'alerte':'ok');
+  texte(z,'p',"Estimation de gestion, et non un avis fiscal ou comptable. Les pertes de stock ne sont pas encore incluses dans cette version.",'petit');
+  const vj=etat.ventes.filter(v=>v.date===date);
+  if(vj.length){
+    texte(z,'h3','Ventes de la journée');
+    vj.forEach(v=>{const l=document.createElement('div');l.className='ligne';texte(l,'span',`${v.produit} · ${v.quantite} ${v.unite} · ${v.mode}`);texte(l,'b',fcfa(totalVente(v)));z.appendChild(l);});
+  }
+}
+function rafraichir(){
+  const r=resumeJour(aujourdhui(),etat.ventes,etat.depenses);
+  el('k-ca').textContent=fcfa(r.ca); el('k-enc').textContent=fcfa(r.enc);
+  el('k-dep').textContent=fcfa(r.dep); el('k-stock').textContent=fcfa(valeurStock(etat.produits));
+  const al=el('alertes'); al.innerHTML='';
+  const faibles=etat.produits.filter(p=>p.stock<=p.seuil).map(p=>p.nom);
+  if(faibles.length) texte(al,'div','Stock faible : '+faibles.join(', ')+'.','alerte');
+  rendreStock(); rendreResume(); majVente();
+}
+function aller(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('actif',p.id===id));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('actif',b.dataset.aller===id));
+  rafraichir(); window.scrollTo(0,0);
+}
+function init(){
+  const sel=el('v-produit'); sel.innerHTML='';
+  etat.produits.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=`${p.emoji} ${p.nom}`;sel.appendChild(o);});
+  el('v-prix').value=produitCourant().prix;
+  chargerCategories();
+  el('d-date').value=aujourdhui(); el('r-date').value=aujourdhui();
+  document.querySelectorAll('[data-aller]').forEach(b=>b.addEventListener('click',()=>aller(b.dataset.aller)));
+  sel.addEventListener('change',()=>{el('v-prix').value=produitCourant().prix; majVente();});
+  ['v-qte','v-prix','v-remise'].forEach(id=>el(id).addEventListener('input',majVente));
+  el('v-recu').addEventListener('input',()=>{el('v-recu').dataset.touche='1'; majVente();});
+  document.querySelectorAll('#v-mode button').forEach(b=>b.addEventListener('click',()=>{
+    modeVente=b.dataset.mode;
+    document.querySelectorAll('#v-mode button').forEach(x=>x.classList.toggle('actif',x===b));
+    majVente();
+  }));
+  el('v-ok').addEventListener('click',enregistrerVente);
+  el('d-ok').addEventListener('click',enregistrerDepense);
+  el('r-date').addEventListener('change',rendreResume);
+  el('reset').addEventListener('click',()=>{
+    if(confirm('Remettre les données de démonstration ? Vos saisies seront effacées.')){
+      etat=construireDemo(aujourdhui()); sauver(); location.reload();
+    }
+  });
+  chargerCategories();
+  rafraichir();
+}
+init();
+</script>
+</body>
+</html>
